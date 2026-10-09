@@ -1,0 +1,276 @@
+/* ============================================
+   HELP DESK PI IV — Animations
+   Transitions, Micro-animations, Skeletons
+   ============================================ */
+
+/* ── Fade In ── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ── Slide ── */
+@keyframes slideInRight {
+  from { transform: translateX(120%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+  from { transform: translateX(0); }
+  to   { transform: translateX(120%); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+/* ── Pulse ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.5; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); }
+  50%      { box-shadow: 0 0 0 8px rgba(124, 58, 237, 0); }
+}
+
+/* ── Shimmer (Skeleton Loading) ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ── Bounce ── */
+@keyframes bounceIn {
+  0%   { transform: scale(0.3); opacity: 0; }
+  50%  { transform: scale(1.05); }
+  70%  { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ── Spin ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Count Up ── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Bar Fill ── */
+@keyframes barFill {
+  from { width: 0; }
+}
+
+/* ============================================
+   Animation Utility Classes
+   ============================================ */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.animate-fade-in-down {
+  animation: fadeInDown 0.4s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.5s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ── Staggered Animations ── */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+
+.stagger-1,
+.stagger-2,
+.stagger-3,
+.stagger-4,
+.stagger-5,
+.stagger-6 {
+  animation-fill-mode: backwards;
+}
+
+/* ── Skeleton Loading ── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-alt) 0%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface-alt) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: var(--space-2);
+  width: 100%;
+}
+
+.skeleton-text:last-child {
+  width: 60%;
+}
+
+.skeleton-title {
+  height: 22px;
+  width: 40%;
+  margin-bottom: var(--space-4);
+}
+
+.skeleton-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+}
+
+.skeleton-card {
+  height: 120px;
+}
+
+.skeleton-row {
+  height: 48px;
+  margin-bottom: var(--space-2);
+}
+
+/* ── Page Transition ── */
+.page-transition-enter {
+  animation: fadeInUp 0.35s ease-out;
+}
+
+/* ── Notification Dot Pulse ── */
+.notification-dot {
+  animation: pulseGlow 2s infinite;
+}
+
+/* ── Hover Glow Effect ── */
+.hover-glow {
+  transition: box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+
+.hover-glow:hover {
+  box-shadow: var(--shadow-purple);
+  transform: translateY(-2px);
+}
+
+/* ── Bar Chart Animation ── */
+.chart-bar-item__fill {
+  animation: barFill 0.8s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.chart-bar-item:nth-child(1) .chart-bar-item__fill { animation-delay: 0.1s; }
+.chart-bar-item:nth-child(2) .chart-bar-item__fill { animation-delay: 0.2s; }
+.chart-bar-item:nth-child(3) .chart-bar-item__fill { animation-delay: 0.3s; }
+.chart-bar-item:nth-child(4) .chart-bar-item__fill { animation-delay: 0.4s; }
+.chart-bar-item:nth-child(5) .chart-bar-item__fill { animation-delay: 0.5s; }
+
+/* ── Table Row Animation ── */
+.data-table tbody tr {
+  animation: fadeInUp 0.3s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.data-table tbody tr:nth-child(1) { animation-delay: 0.03s; }
+.data-table tbody tr:nth-child(2) { animation-delay: 0.06s; }
+.data-table tbody tr:nth-child(3) { animation-delay: 0.09s; }
+.data-table tbody tr:nth-child(4) { animation-delay: 0.12s; }
+.data-table tbody tr:nth-child(5) { animation-delay: 0.15s; }
+.data-table tbody tr:nth-child(6) { animation-delay: 0.18s; }
+.data-table tbody tr:nth-child(7) { animation-delay: 0.21s; }
+.data-table tbody tr:nth-child(8) { animation-delay: 0.24s; }
+.data-table tbody tr:nth-child(9) { animation-delay: 0.27s; }
+.data-table tbody tr:nth-child(10) { animation-delay: 0.30s; }
+
+/* ── Stat Card Counter Animation ── */
+.stat-card {
+  animation: fadeInUp 0.4s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+/* ── Timeline Item Animation ── */
+.timeline-item {
+  animation: fadeInUp 0.4s ease-out;
+  animation-fill-mode: backwards;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+.timeline-item:nth-child(4) { animation-delay: 0.4s; }
+.timeline-item:nth-child(5) { animation-delay: 0.5s; }
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,25 @@
+# Dependências
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+.venv/
+venv/
+env/
+*.py
+*.pyc
+__pycache__/
+*.sql
+
+# Logs
+*.log
+
+# Documentação
+
+# Banco de dados

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpDesk - Criar Conta</title>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/login.css">
+    
+    <!-- Icones (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="brand">
+                <i data-lucide="ticket"></i>
+                <h1>HelpDesk</h1>
+            </div>
+            
+            <div class="login-header">
+                <h2>Criar sua conta</h2>
+                <p>Preencha os dados abaixo para se registrar no sistema.</p>
+            </div>
+            
+            <form id="registerForm">
+                <div class="input-group">
+                    <label for="regName">Nome Completo</label>
+                    <div class="input-field">
+                        <i data-lucide="user"></i>
+                        <input type="text" id="regName" placeholder="Seu nome completo" required />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="regEmail">E-mail Corporativo</label>
+                    <div class="input-field">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="regEmail" placeholder="nome@empresa.com.br" required />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="regJobTitle">Cargo</label>
+                    <div class="input-field">
+                        <i data-lucide="briefcase"></i>
+                        <input type="text" id="regJobTitle" placeholder="Ex: Analista de Suporte" required />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="regDepartment">Departamento</label>
+                    <div class="input-field">
+                        <i data-lucide="building"></i>
+                        <input type="text" id="regDepartment" placeholder="Ex: Tecnologia da Informacao" required />
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="regPassword">Senha</label>
+                    <div class="input-field">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="regPassword" placeholder="Minimo 6 caracteres" required minlength="6" />
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="regPasswordConfirm">Confirmar Senha</label>
+                    <div class="input-field">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="regPasswordConfirm" placeholder="Repita a senha" required minlength="6" />
+                    </div>
+                </div>
+                
+                <div class="error-message" id="registerError"></div>
+                
+                <button type="submit" class="btn-primary" id="btnRegister">Criar Conta</button>
+            </form>
+
+            <div class="auth-footer">
+                <span>Ja tem uma conta?</span>
+                <a href="login.html">Entrar</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>lucide.createIcons();</script>
+    <script src="js/register.js"></script>
+</body>
+</html>

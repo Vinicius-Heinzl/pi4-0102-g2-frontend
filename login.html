@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HelpDesk - Login</title>
+    
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/login.css">
+    
+    <!-- Ícones (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="brand">
+                <i data-lucide="ticket"></i>
+                <h1>HelpDesk</h1>
+            </div>
+            
+            <div class="login-header">
+                <h2>Acesse sua conta</h2>
+                <p>Use seu e-mail e senha corporativos para entrar no sistema.</p>
+            </div>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="loginEmail">E-mail Corporativo</label>
+                    <div class="input-field">
+                        <i data-lucide="mail"></i>
+                        <input type="email" id="loginEmail" placeholder="nome@empresa.com.br" required />
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="loginPassword">Senha</label>
+                    <div class="input-field">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required />
+                    </div>
+                </div>
+                
+                <div class="error-message" id="loginError"></div>
+                
+                <button type="submit" class="btn-primary" id="btnLogin">Entrar no HelpDesk</button>
+            </form>
+
+            <div class="auth-footer">
+                <span>Ainda nao tem uma conta?</span>
+                <a href="register.html">Criar Conta</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>lucide.createIcons();</script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

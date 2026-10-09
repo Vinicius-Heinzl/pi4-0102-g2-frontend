@@ -1,0 +1,257 @@
+/* ============================================
+   HELP DESK PI IV — Design Tokens & Themes
+   ============================================ */
+
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* ── Primary Purple Palette ── */
+  --purple-50:  #F5F3FF;
+  --purple-100: #EDE9FE;
+  --purple-200: #DDD6FE;
+  --purple-300: #C4B5FD;
+  --purple-400: #A78BFA;
+  --purple-500: #8B5CF6;
+  --purple-600: #7C3AED;
+  --purple-700: #6D28D9;
+  --purple-800: #5B21B6;
+  --purple-900: #4C1D95;
+  --purple-950: #2E1065;
+
+  /* ── Neutral Palette ── */
+  --gray-50:  #F9FAFB;
+  --gray-100: #F3F4F6;
+  --gray-200: #E5E7EB;
+  --gray-300: #D1D5DB;
+  --gray-400: #9CA3AF;
+  --gray-500: #6B7280;
+  --gray-600: #4B5563;
+  --gray-700: #374151;
+  --gray-800: #1F2937;
+  --gray-900: #111827;
+  --gray-950: #030712;
+
+  /* ── Status Colors ── */
+  --status-new:         #3B82F6;
+  --status-new-bg:      #EFF6FF;
+  --status-assigned:    #0EA5E9;
+  --status-assigned-bg: #F0F9FF;
+  --status-open:        #3B82F6;
+  --status-open-bg:     #EFF6FF;
+  --status-progress:    #F59E0B;
+  --status-progress-bg: #FFFBEB;
+  --status-pending:     #EF4444;
+  --status-pending-bg:  #FEF2F2;
+  --status-resolved:    #10B981;
+  --status-resolved-bg: #ECFDF5;
+  --status-closed:      #6B7280;
+  --status-closed-bg:   #F3F4F6;
+
+  /* ── Priority Colors ── */
+  --priority-urgent:    #DC2626;
+  --priority-urgent-bg: #FEF2F2;
+  --priority-high:      #F97316;
+  --priority-high-bg:   #FFF7ED;
+  --priority-medium:    #EAB308;
+  --priority-medium-bg: #FEFCE8;
+  --priority-normal:    #64748B;
+  --priority-normal-bg: #F1F5F9;
+  --priority-low:       #22C55E;
+  --priority-low-bg:    #F0FDF4;
+
+  /* ── Typography ── */
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.8125rem;  /* 13px */
+  --text-base: 0.875rem;   /* 14px */
+  --text-md:   1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+
+  --weight-light:    300;
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-extrabold: 800;
+
+  /* ── Spacing ── */
+  --space-1:  0.25rem;   /* 4px */
+  --space-2:  0.5rem;    /* 8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
+  --space-16: 4rem;      /* 64px */
+
+  /* ── Border Radius ── */
+  --radius-sm:   0.375rem;  /* 6px */
+  --radius-md:   0.5rem;    /* 8px */
+  --radius-lg:   0.75rem;   /* 12px */
+  --radius-xl:   1rem;      /* 16px */
+  --radius-2xl:  1.5rem;    /* 24px */
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-purple: 0 4px 14px rgba(124, 58, 237, 0.25);
+  --shadow-purple-lg: 0 8px 25px rgba(124, 58, 237, 0.35);
+
+  /* ── Z-Index ── */
+  --z-dropdown:  100;
+  --z-sidebar:   200;
+  --z-overlay:   300;
+  --z-modal:     400;
+  --z-toast:     500;
+
+  /* ── Transitions ── */
+  --transition-fast:   150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base:   200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow:   300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-theme:  350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Sidebar ── */
+  --sidebar-width: 260px;
+
+  /* ── Header ── */
+  --header-height: 64px;
+}
+
+/* ============================================
+   LIGHT THEME (Default)
+   ============================================ */
+:root,
+[data-theme="light"] {
+  --color-primary:       var(--purple-600);
+  --color-primary-hover: var(--purple-700);
+  --color-primary-dark:  var(--purple-800);
+  --color-primary-light: var(--purple-100);
+  --color-primary-50:    var(--purple-50);
+
+  --color-bg:            #F8F7FC;
+  --color-bg-alt:        var(--gray-50);
+  --color-surface:       #FFFFFF;
+  --color-surface-hover: var(--gray-50);
+  --color-surface-alt:   var(--gray-100);
+
+  --color-sidebar-bg:    #1E1B2E;
+  --color-sidebar-text:  rgba(255, 255, 255, 0.7);
+  --color-sidebar-active: rgba(255, 255, 255, 1);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --color-sidebar-active-bg: rgba(124, 58, 237, 0.3);
+
+  --color-header-bg:     #FFFFFF;
+  --color-header-border: var(--gray-200);
+
+  --color-text:          #1A1A2E;
+  --color-text-secondary: var(--gray-500);
+  --color-text-tertiary: var(--gray-400);
+  --color-text-inverse:  #FFFFFF;
+
+  --color-border:        var(--gray-200);
+  --color-border-light:  var(--gray-100);
+  --color-divider:       var(--gray-200);
+
+  --color-input-bg:      #FFFFFF;
+  --color-input-border:  var(--gray-300);
+  --color-input-focus:   var(--purple-500);
+
+  --color-overlay:       rgba(0, 0, 0, 0.5);
+
+  --color-danger:        #EF4444;
+  --color-danger-hover:  #DC2626;
+  --color-danger-bg:     #FEF2F2;
+  --color-success:       #10B981;
+  --color-success-bg:    #ECFDF5;
+  --color-warning:       #F59E0B;
+  --color-warning-bg:    #FFFBEB;
+  --color-info:          #3B82F6;
+  --color-info-bg:       #EFF6FF;
+}
+
+/* ============================================
+   DARK THEME
+   ============================================ */
+[data-theme="dark"] {
+  --color-primary:       var(--purple-500);
+  --color-primary-hover: var(--purple-400);
+  --color-primary-dark:  var(--purple-600);
+  --color-primary-light: rgba(139, 92, 246, 0.15);
+  --color-primary-50:    rgba(139, 92, 246, 0.08);
+
+  --color-bg:            #0F0D15;
+  --color-bg-alt:        #0A0910;
+  --color-surface:       #1A1726;
+  --color-surface-hover: #221F30;
+  --color-surface-alt:   #13111C;
+
+  --color-sidebar-bg:    #0A0910;
+  --color-sidebar-text:  rgba(255, 255, 255, 0.6);
+  --color-sidebar-active: rgba(255, 255, 255, 0.95);
+  --color-sidebar-hover: rgba(255, 255, 255, 0.08);
+  --color-sidebar-active-bg: rgba(139, 92, 246, 0.25);
+
+  --color-header-bg:     #1A1726;
+  --color-header-border: #2D2B3A;
+
+  --color-text:          #F3F4F6;
+  --color-text-secondary: #9CA3AF;
+  --color-text-tertiary: #6B7280;
+  --color-text-inverse:  #0F0D15;
+
+  --color-border:        #2D2B3A;
+  --color-border-light:  #1F1D2B;
+  --color-divider:       #2D2B3A;
+
+  --color-input-bg:      #13111C;
+  --color-input-border:  #2D2B3A;
+  --color-input-focus:   var(--purple-400);
+
+  --color-overlay:       rgba(0, 0, 0, 0.7);
+
+  --color-danger:        #F87171;
+  --color-danger-hover:  #EF4444;
+  --color-danger-bg:     rgba(239, 68, 68, 0.12);
+  --color-success:       #34D399;
+  --color-success-bg:    rgba(16, 185, 129, 0.12);
+  --color-warning:       #FBBF24;
+  --color-warning-bg:    rgba(245, 158, 11, 0.12);
+  --color-info:          #60A5FA;
+  --color-info-bg:       rgba(59, 130, 246, 0.12);
+
+  --status-new-bg:      rgba(59, 130, 246, 0.12);
+  --status-assigned-bg: rgba(14, 165, 233, 0.12);
+  --status-open-bg:     rgba(59, 130, 246, 0.12);
+  --status-progress-bg: rgba(245, 158, 11, 0.12);
+  --status-pending-bg:  rgba(239, 68, 68, 0.12);
+  --status-resolved-bg: rgba(16, 185, 129, 0.12);
+  --status-closed-bg:   rgba(107, 114, 128, 0.12);
+
+  --priority-urgent-bg: rgba(220, 38, 38, 0.12);
+  --priority-high-bg:   rgba(249, 115, 22, 0.12);
+  --priority-medium-bg: rgba(234, 179, 8, 0.12);
+  --priority-normal-bg: rgba(100, 116, 139, 0.12);
+  --priority-low-bg:    rgba(34, 197, 94, 0.12);
+
+  --shadow-xs:  0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm:  0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md:  0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg:  0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --shadow-xl:  0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-purple: 0 4px 14px rgba(139, 92, 246, 0.2);
+  --shadow-purple-lg: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
