@@ -1,0 +1,55 @@
+name: Sync Frontend to Main Repo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+      - '.github/**'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout deste repositório (Frontend)
+        uses: actions/checkout@v4
+        with:
+          path: source-repo
+
+      - name: Checkout do Repositório Principal
+        uses: actions/checkout@v4
+        with:
+          repository: cauagreccodev/pi4-2026-2-0102-grupo2
+          token: ${{ secrets.API_TOKEN_GITHUB }}
+          path: main-repo
+
+      - name: Sincronizar pasta frontend
+        run: |
+          mkdir -p main-repo/frontend
+          if [ -d "source-repo/frontend" ]; then
+            SRC_DIR="source-repo/frontend/"
+          else
+            SRC_DIR="source-repo/"
+          fi
+          rsync -av --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.gitignore' \
+            --exclude='docs/' \
+            --exclude='README.md' \
+            "$SRC_DIR" main-repo/frontend/
+
+      - name: Commit e Push no Repositório Principal
+        working-directory: main-repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(frontend): sync code from frontend repo (${{ github.sha }})"
+            git pull --rebase origin main
+            git push
+          fi
