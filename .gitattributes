@@ -1,0 +1,2 @@
+# A patch contains intentional whitespace in context and removed lines.
+docs/backend/*.patch text eol=lf -whitespace
