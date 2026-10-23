@@ -60,6 +60,12 @@ git apply <caminho-do-frontend>/docs/backend/start-service.patch
 
 Essa mudança exige publicar a API junto com o frontend. A API anterior ainda inicia atendimento durante a criação e não possui a rota `/iniciar`. Não há migração automática de chamados antigos: o fluxo novo é aplicado às novas criações e aos chamados em `NEW`.
 
+### Publicação v0.1.12
+
+A correção foi publicada diretamente na `main` do repositório de produção [cauagreccodev/pi4-2026-2-0102-grupo2, commit 04a5f78](https://github.com/cauagreccodev/pi4-2026-2-0102-grupo2/commit/04a5f78). Esse commit inclui o início de atendimento pela TI e a restrição de consultas por departamento. A publicação anterior do frontend não havia atualizado esses arquivos Java, pois o workflow sincroniza somente a pasta `frontend`.
+
+O deploy no Render foi confirmado pelo [health check da API](https://help-desk-pi-iv.onrender.com/health), que agora retorna `ticketLifecycle: "NEW_UNTIL_TI_OPEN"`. A tag `v0.1.12` deste frontend registra essa publicação; o código do frontend já estava preparado na `v0.1.11`. A validação do backend publicado passou em 43 verificações de contrato, com DAOs em memória.
+
 ## Verificação
 
 ```powershell
