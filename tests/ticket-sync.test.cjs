@@ -13,23 +13,28 @@ function application() {
   const toasts = [];
   const nodes = new Map();
   const node = id => {
-    if (!nodes.has(id)) nodes.set(id, { innerHTML: '', value: '', listeners: {}, addEventListener(name, handler) { this.listeners[name] = handler; }, querySelector: () => null, querySelectorAll: () => [] });
+    if (!nodes.has(id)) nodes.set(id, { innerHTML: '', value: '', classList: { add() {}, remove() {} }, listeners: {}, addEventListener(name, handler) { this.listeners[name] = handler; }, querySelector: () => null, querySelectorAll: () => [] });
     return nodes.get(id);
   };
   const routes = {};
   const events = {};
+  const timers = [];
   const context = vm.createContext({
-    console, URLSearchParams,
+    console, URLSearchParams, setInterval: (handler, delay) => { timers.push({ handler, delay }); },
     localStorage: { getItem: () => 'test-token' },
     window: {},
-    document: { visibilityState: 'visible', addEventListener: (name, callback) => { events[name] = callback; }, querySelectorAll: () => [], querySelector: () => null, getElementById: node },
+    document: { body: { style: {} }, visibilityState: 'visible', addEventListener: (name, callback) => { events[name] = callback; }, querySelectorAll: () => [], querySelector: () => null, getElementById: node },
     ThemeManager: { init() {}, isDark: () => false },
     Router: { register: (name, handler) => { routes[name] = handler; }, init() {}, resolve() {}, getCurrentRoute: () => 'chamados' },
     fetch: async (url, options) => {
       const body = options.body && JSON.parse(options.body);
       requests.push({ url, method: options.method, cache: options.cache, body });
       let data;
-      if (options.method === 'PUT') { ticket = { ...ticket, ...body }; data = { success: true }; }
+      if (url.endsWith('/iniciar')) {
+        if (ticket.status === 'NEW') ticket = { ...ticket, status: 'ASSIGNED', supportId: 2 };
+        data = { success: true };
+      }
+      else if (options.method === 'PUT') { ticket = { ...ticket, ...body }; data = { success: true }; }
       else if (url.endsWith('/api/chamados/20')) data = { ticket: { ...ticket }, timeline: [] };
       else if (url.endsWith('/api/chamados')) data = [{ ...ticket }];
       else if (url.endsWith('/api/users')) data = users;
@@ -44,7 +49,7 @@ function application() {
   context.showToast = (...args) => toasts.push(args);
   run(`CURRENT_USER = { id: 2, name: 'Vinicius', department: 'TI' };
     USERS = ${JSON.stringify(users)}; tickets = [${JSON.stringify(ticket)}];`);
-  return { run, requests, routes, events, toasts, node, server: patch => { ticket = { ...ticket, ...patch }; } };
+  return { run, requests, routes, events, timers, toasts, node, server: patch => { ticket = { ...ticket, ...patch }; } };
 }
 
 test('department column follows title in both tables and uses requester rather than assignee sector', () => {
@@ -175,4 +180,69 @@ test('resolved view removes reopened tickets and refreshes its counter when retu
   assert.match(node('pageContent').innerHTML, /Nenhum chamado resolvido encontrado/);
   assert.doesNotMatch(node('pageContent').innerHTML, /data-ticket-id="20"/);
   assert.equal(node('sidebarResolvedCount').textContent, 0);
+});
+
+test('nominating an assignee in creation keeps the displayed status NEW', async () => {
+  const { run, node, events } = application();
+  await run(`App.init()`);
+  const form = { querySelector: selector => node(selector.slice(1)) };
+  const assignee = node('ticketTechnician');
+  assignee.value = '3'; assignee.closest = () => form;
+  node('ticketStatus').disabled = true;
+  node('ticketStatus').value = 'NEW';
+  events.change({ target: assignee });
+  assert.equal(node('ticketStatus').value, 'NEW');
+  assert.match(run(`renderTicketModal()`), /O chamado começa Em aberto/);
+});
+
+test('only entering TI detail starts NEW service and repeated opening does not repeat the operation', async () => {
+  const { run, server, requests, routes, node } = application();
+  server({ status: 'NEW', supportId: 1 });
+  await run(`App.init();`);
+  await routes.chamados();
+  assert.equal(requests.filter(request => request.url.endsWith('/iniciar')).length, 0);
+  run(`Router.getCurrentRoute = () => 'chamado/20'`);
+  await routes['chamado/:id']({ id: '20' });
+  assert.equal(requests.filter(request => request.url.endsWith('/iniciar')).length, 1);
+  assert.equal(run(`tickets[0].status`), 'ASSIGNED');
+  assert.equal(run(`tickets[0].supportId`), 2);
+  assert.match(node('pageContent').innerHTML, /Em atendimento/);
+  await routes['chamado/:id']({ id: '20' });
+  assert.equal(requests.filter(request => request.url.endsWith('/iniciar')).length, 1);
+});
+
+test('requester viewing a NEW ticket and TI editing it never start service', async () => {
+  const { run, server, requests, routes, node } = application();
+  server({ status: 'NEW' });
+  await run(`App.init()`);
+  await run(`App.editTicket(20)`);
+  run(`CURRENT_USER = { id: 1, name: 'Adriana', department: 'Marketing' }; Router.getCurrentRoute = () => 'chamado/20'`);
+  await routes['chamado/:id']({ id: '20' });
+  assert.equal(requests.filter(request => request.method === 'POST').length, 0);
+  assert.equal(run(`tickets[0].status`), 'NEW');
+  assert.match(node('pageContent').innerHTML, /Em aberto/);
+  await assert.rejects(run(`Api.startTicket(20)`), /TI/);
+});
+
+test('TI viewing resolved tickets cannot restart them', async () => {
+  const { run, server, requests, routes } = application();
+  server({ status: 'CLOSED' });
+  await run(`App.init()`);
+  run(`Router.getCurrentRoute = () => 'chamado/20'`);
+  await routes['chamado/:id']({ id: '20' });
+  assert.equal(requests.filter(request => request.method === 'POST').length, 0);
+  assert.equal(run(`tickets[0].status`), 'CLOSED');
+});
+
+test('visible requester list periodically synchronizes service started in the TI account', async () => {
+  const { run, server, timers, node, requests } = application();
+  server({ status: 'NEW' });
+  await run(`App.init()`);
+  run(`CURRENT_USER = { id: 1, name: 'Adriana', department: 'Marketing' }`);
+  server({ status: 'ASSIGNED', supportId: 2 });
+  assert.equal(timers[0].delay, 15000);
+  await timers[0].handler();
+  assert.match(node('pageContent').innerHTML, /Em atendimento/);
+  assert.equal(run(`getDashboardStats().assigned`), 1);
+  assert.equal(requests.filter(request => request.method === 'POST').length, 0);
 });

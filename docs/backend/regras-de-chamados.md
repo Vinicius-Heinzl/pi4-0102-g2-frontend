@@ -9,7 +9,11 @@ Os fluxos E2 e E5 e o contrato CT22 orientam os nomes apresentados na interface:
 | `CLOSED` | Resolvido |
 | `UNRESOLVED` | Não solucionado |
 
-Na abertura, o solicitante é obtido do token. Um chamado sem responsável começa em `NEW`. Quando uma pessoa é escolhida, a criação já registra a atribuição e o status `ASSIGNED`. Esse status inicial é exibido automaticamente, sem permitir escolher um estado final na abertura.
+Na abertura, o solicitante é obtido do token. Todo chamado começa em `NEW` (Em aberto), inclusive quando uma pessoa é indicada como responsável. Atribuir alguém não inicia o atendimento. O formulário mantém o status inicial fixo em Em aberto e a API ignora qualquer status enviado na criação.
+
+Ao entrar na página de detalhes de um chamado `NEW`, uma pessoa do departamento TI aciona `POST /api/chamados/{id}/iniciar`. A API confere o departamento salvo no banco, muda o status para `ASSIGNED`, registra essa pessoa da TI como responsável e inclui um evento na timeline. A mudança de status e o histórico são gravados na mesma operação SQL condicional: somente o primeiro técnico consegue iniciar um chamado ainda `NEW`. Repetir a operação não troca o responsável nem duplica o evento. Chamados resolvidos ou não solucionados não são reabertos por essa operação.
+
+Consultar listas, dashboard, detalhes por GET, editar o formulário ou visualizar como solicitante não inicia o atendimento. O frontend aciona a operação somente ao abrir a rota de detalhes pela TI, depois de verificar que o chamado continua Em aberto. As páginas visíveis sincronizam os chamados a cada 15 segundos e ao retornar à aba, refletindo a alteração tanto na conta da TI quanto na do solicitante.
 
 O seletor de setor filtra as pessoas cadastradas. Qualquer pessoa cadastrada, de qualquer setor, pode ser indicada como responsável. O vínculo usa `supportId`, conforme o contrato existente, sem depender de texto livre ou armazenamento local. Ao selecionar um setor sem pessoas cadastradas, é necessário escolher outro setor ou voltar a “Todos os setores” para abrir sem responsável.
 
@@ -25,7 +29,7 @@ Um chamado pertence ao escopo do departamento quando seu solicitante (`clientId`
 
 A mesma regra vale para lista, busca, filtros, contadores, gráficos, notificações e detalhes. A API calcula os vínculos com os departamentos registrados no banco, sem confiar em parâmetros de setor enviados pelo navegador. Consultas diretas a chamados de outros setores retornam 404 antes de carregar a timeline. Mudanças de departamento passam a valer na próxima requisição da API e na atualização dos dados da interface.
 
-Editar também grava título, descrição, categoria e prioridade. O solicitante original não muda. Uma alteração apenas de status preserva o responsável; voltar para `NEW` remove a atribuição. `ASSIGNED` e `CLOSED` exigem um responsável. Reabrir limpa a data de encerramento.
+Editar também grava título, descrição, categoria e prioridade. O solicitante original não muda. Uma alteração apenas de status preserva o responsável; voltar para `NEW` sem indicar um responsável remove a atribuição. Indicar explicitamente um responsável em `NEW` preserva o chamado em aberto. `ASSIGNED` e `CLOSED` exigem um responsável. Reabrir limpa a data de encerramento.
 
 ## Backend e publicação
 
@@ -47,10 +51,19 @@ git apply <caminho-do-frontend>/docs/backend/department-access.patch
 
 Publique o frontend e o backend em conjunto para que a restrição também esteja ativa nas chamadas HTTP diretas em produção.
 
+O fluxo de início de atendimento está em [start-service.patch](start-service.patch), aplicado **depois** dos dois patches anteriores. Ele modifica `TicketHandler` e `TicketDao`; a mudança também foi aplicada no checkout local irmão. Para outro checkout, execute da raiz do repositório principal:
+
+```powershell
+git apply --check <caminho-do-frontend>/docs/backend/start-service.patch
+git apply <caminho-do-frontend>/docs/backend/start-service.patch
+```
+
+Essa mudança exige publicar a API junto com o frontend. A API anterior ainda inicia atendimento durante a criação e não possui a rota `/iniciar`. Não há migração automática de chamados antigos: o fluxo novo é aplicado às novas criações e aos chamados em `NEW`.
+
 ## Verificação
 
 ```powershell
-node --test tests/ticket-rules.test.cjs tests/department-access.test.cjs
+node --test tests/ticket-rules.test.cjs tests/department-access.test.cjs tests/ticket-sync.test.cjs
 ./tests/run-backend-contract.ps1
 # Para outro checkout do backend:
 ./tests/run-backend-contract.ps1 -BackendPath C:/projetos/principal/backend-api
