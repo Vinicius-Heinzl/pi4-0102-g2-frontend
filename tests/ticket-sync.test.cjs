@@ -13,7 +13,7 @@ function application() {
   const toasts = [];
   const nodes = new Map();
   const node = id => {
-    if (!nodes.has(id)) nodes.set(id, { innerHTML: '', value: '', addEventListener() {}, querySelector: () => null, querySelectorAll: () => [] });
+    if (!nodes.has(id)) nodes.set(id, { innerHTML: '', value: '', listeners: {}, addEventListener(name, handler) { this.listeners[name] = handler; }, querySelector: () => null, querySelectorAll: () => [] });
     return nodes.get(id);
   };
   const routes = {};
@@ -113,4 +113,66 @@ test('returning to an already open tab refreshes the displayed status', async ()
   await events.visibilitychange();
   assert.match(node('pageContent').innerHTML, /Resolvido/);
   assert.equal(run(`getDashboardStats().closed`), 1);
+});
+
+async function resolvedApplication(department = 'TI') {
+  const app = application();
+  await app.run(`App.init()`);
+  app.run(`CURRENT_USER = { id: 1, name: 'Adriana', department: '${department}', role: 'ADMIN' };
+    USERS = [CURRENT_USER, {id: 2, name: 'Ana', department: 'Vendas'}];
+    window.fixture = [
+      {id: 20, title: 'Resolvido Marketing', description: '', clientId: 1, status: 'CLOSED', priority: 'MEDIUM'},
+      {id: 21, title: 'Resolvido Vendas', description: '', clientId: 2, status: 'CLOSED', priority: 'HIGH'},
+      {id: 22, title: 'Ainda em atendimento', description: '', clientId: 1, status: 'ASSIGNED', priority: 'HIGH'},
+      {id: 23, title: 'Não solucionado', description: '', clientId: 1, status: 'UNRESOLVED', priority: 'HIGH'}
+    ];
+    Api.fetchTickets = async () => window.fixture;
+    Router.getCurrentRoute = () => 'resolvidos';`);
+  await app.routes.resolvidos();
+  return app;
+}
+
+test('resolved menu and route show TI all resolved tickets and an accurate counter', async () => {
+  const { run, node } = await resolvedApplication();
+  const html = node('pageContent').innerHTML;
+  assert.match(html, /<h1[^>]*>Resolvidos<\/h1>/);
+  assert.match(html, /data-ticket-id="20"/);
+  assert.match(html, /data-ticket-id="21"/);
+  assert.doesNotMatch(html, /data-ticket-id="22"|data-ticket-id="23"/);
+  assert.match(run(`renderSidebar()`), /data-route="resolvidos" href="#resolvidos"/);
+  assert.equal(node('sidebarResolvedCount').textContent, 2);
+  assert.equal(node('filterStatus').value, 'CLOSED');
+});
+
+test('non-TI ADMIN only sees department resolved tickets even when API fixture contains all sectors', async () => {
+  const { run, node } = await resolvedApplication('Marketing');
+  const html = node('pageContent').innerHTML;
+  assert.match(html, /data-ticket-id="20"/);
+  assert.doesNotMatch(html, /data-ticket-id="21"|data-ticket-id="22"|data-ticket-id="23"/);
+  assert.equal(node('sidebarResolvedCount').textContent, 1);
+  assert.match(run(`renderSidebar()`), /id="sidebarResolvedCount">1</);
+});
+
+test('resolved filters cannot expose open tickets and remain separate from the main list', async () => {
+  const { run, node, routes } = await resolvedApplication();
+  node('filterStatus').value = 'ASSIGNED';
+  node('filterStatus').listeners.change();
+  assert.doesNotMatch(node('pageContent').innerHTML, /data-ticket-id="22"/);
+  node('filterPriority').value = 'HIGH';
+  node('filterPriority').listeners.change();
+  assert.match(node('pageContent').innerHTML, /data-ticket-id="21"/);
+  assert.doesNotMatch(node('pageContent').innerHTML, /data-ticket-id="20"|data-ticket-id="22"/);
+  run(`Router.getCurrentRoute = () => 'chamados'`);
+  await routes.chamados();
+  assert.match(node('pageContent').innerHTML, /data-ticket-id="20"/);
+  assert.match(node('pageContent').innerHTML, /data-ticket-id="22"/);
+});
+
+test('resolved view removes reopened tickets and refreshes its counter when returning to the tab', async () => {
+  const { run, events, node } = await resolvedApplication('Marketing');
+  run(`window.fixture = window.fixture.map(ticket => ticket.id === 20 ? {...ticket, status: 'NEW'} : ticket)`);
+  await events.visibilitychange();
+  assert.match(node('pageContent').innerHTML, /Nenhum chamado resolvido encontrado/);
+  assert.doesNotMatch(node('pageContent').innerHTML, /data-ticket-id="20"/);
+  assert.equal(node('sidebarResolvedCount').textContent, 0);
 });
