@@ -1,0 +1,99 @@
+--- a/backend-api/src/com/helpdesk/api/util/DepartmentPolicy.java
++++ b/backend-api/src/com/helpdesk/api/util/DepartmentPolicy.java
+@@ -1,6 +1,10 @@
+ package com.helpdesk.api.util;
+ 
+ import com.helpdesk.api.model.User;
++import com.helpdesk.api.model.Ticket;
++import java.util.List;
++import java.util.Set;
++import java.util.stream.Collectors;
+ import java.text.Normalizer;
+ import java.util.Locale;
+ import java.util.Map;
+@@ -22,6 +26,23 @@
+         ).get(key);
+     }
+ 
++    public static Set<Integer> departmentMemberIds(User actor, List<User> users) {
++        if (actor == null) return Set.of();
++        String department = normalize(actor.getDepartment());
++        if (department == null) return Set.of();
++        Set<Integer> members = users.stream()
++            .filter(user -> department.equals(normalize(user.getDepartment())))
++            .map(User::getId).collect(Collectors.toSet());
++        members.add(actor.getId());
++        return members;
++    }
++
++    public static boolean canViewTicket(User actor, Ticket ticket, Set<Integer> members) {
++        return actor != null && ticket != null && (canManageTickets(actor) ||
++            members.contains(ticket.getClientId()) ||
++            (ticket.getSupportId() != null && members.contains(ticket.getSupportId())));
++    }
++
+     public static boolean canManageTickets(User user) {
+         return user != null && "TI".equals(normalize(user.getDepartment()));
+     }
+--- a/backend-api/src/com/helpdesk/api/handler/TicketHandler.java
++++ b/backend-api/src/com/helpdesk/api/handler/TicketHandler.java
+@@ -84,6 +84,10 @@
+                 Integer supportId = params.containsKey("supportId") && !params.get("supportId").isEmpty() ? Integer.parseInt(params.get("supportId")) : null;
+ 
+                 List<Ticket> tickets = ticketDao.findAll(status, clientId, supportId);
++                if (!DepartmentPolicy.canManageTickets(actor)) {
++                    Set<Integer> members = DepartmentPolicy.departmentMemberIds(actor, userDao.findAll());
++                    tickets = tickets.stream().filter(ticket -> DepartmentPolicy.canViewTicket(actor, ticket, members)).toList();
++                }
+                 HttpHelper.sendJson(exchange, 200, tickets);
+ 
+             } else if ("POST".equalsIgnoreCase(method) && "/api/chamados".equals(path)) {
+@@ -139,6 +143,12 @@
+                         HttpHelper.sendError(exchange, 404, "Chamado não encontrado");
+                         return;
+                     }
++                    Set<Integer> members = DepartmentPolicy.canManageTickets(actor) ? Set.of()
++                        : DepartmentPolicy.departmentMemberIds(actor, userDao.findAll());
++                    if (!DepartmentPolicy.canViewTicket(actor, ticket, members)) {
++                        HttpHelper.sendError(exchange, 404, "Chamado n?o encontrado");
++                        return;
++                    }
+                     List<TicketTimeline> timeline = timelineDao.findByTicketId(ticketId);
+                     
+                     Map<String, Object> response = new HashMap<>();
+--- a/backend-api/src/com/helpdesk/api/handler/NotificationHandler.java
++++ b/backend-api/src/com/helpdesk/api/handler/NotificationHandler.java
+@@ -1,6 +1,12 @@
+ package com.helpdesk.api.handler;
+ 
+ import com.helpdesk.api.dao.NotificationDao;
++import com.helpdesk.api.dao.UserDao;
++import com.helpdesk.api.dao.TicketDao;
++import com.helpdesk.api.model.User;
++import com.helpdesk.api.util.DepartmentPolicy;
++import java.util.Set;
++import java.util.stream.Collectors;
+ import com.helpdesk.api.model.Notification;
+ import com.helpdesk.api.util.AuthUtil;
+ import com.helpdesk.api.util.HttpHelper;
+@@ -37,6 +43,20 @@
+         try {
+             if ("GET".equalsIgnoreCase(exchange.getRequestMethod()) && "/api/notificacoes".equals(path)) {
+                 List<Notification> notifications = notificationDao.findByUserId(userId);
++                User actor = new UserDao().findById(userId);
++                if (actor == null) {
++                    HttpHelper.sendError(exchange, 401, "Usu?rio n?o encontrado");
++                    return;
++                }
++                if (!DepartmentPolicy.canManageTickets(actor)) {
++                    Set<Integer> members = DepartmentPolicy.departmentMemberIds(actor, new UserDao().findAll());
++                    Set<Integer> visibleTickets = new TicketDao().findAll(null, null, null).stream()
++                        .filter(ticket -> DepartmentPolicy.canViewTicket(actor, ticket, members))
++                        .map(ticket -> ticket.getId()).collect(Collectors.toSet());
++                    notifications = notifications.stream()
++                        .filter(notification -> notification.getTicketId() != null && visibleTickets.contains(notification.getTicketId()))
++                        .toList();
++                }
+                 HttpHelper.sendJson(exchange, 200, notifications);
+             } else if ("PUT".equalsIgnoreCase(exchange.getRequestMethod()) && path.startsWith("/api/notificacoes/")) {
+                 String idStr = HttpHelper.getPathParam(path, 3);

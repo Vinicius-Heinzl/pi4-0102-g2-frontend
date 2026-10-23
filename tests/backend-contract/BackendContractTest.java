@@ -26,15 +26,32 @@ public class BackendContractTest {
     }
     public static void main(String[] args) throws Exception {
         user(1, "ADMIN", "Financeiro"); user(2, "CLIENT", "TI"); user(3, "SUPPORT", "Marketing");
+        user(4, "CLIENT", "Financeiro"); user(5, "ADMIN", "Vendas"); user(6, "ADMIN", null);
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/api/chamados", new TicketHandler());
         server.createContext("/api/register", new UserHandler());
+        server.createContext("/api/notificacoes", new NotificationHandler());
         server.start(); base = "http://127.0.0.1:" + server.getAddress().getPort();
         try {
             String create = "{\"title\":\"Teste\",\"description\":\"Detalhes\",\"priority\":\"HIGH\",\"categoryId\":1,\"supportId\":3}";
             check(call(1, "POST", "/api/chamados", create).statusCode() == 201, "Non-TI must create and assign to Marketing");
             check(TicketDao.saved.getSupportId() == 3 && TicketDao.saved.getStatus().equals("ASSIGNED"), "Creation must persist any-sector assignee and derived status");
             check(TicketDao.saved.getClientId() == 1, "Requester must come from token");
+            check(call(4, "GET", "/api/chamados/42", null).statusCode() == 200, "Coworker in requester sector can read details");
+            check(call(3, "GET", "/api/chamados/42", null).statusCode() == 200, "Assigned sector can read details");
+            check(call(5, "GET", "/api/chamados/42", null).statusCode() == 404, "Unrelated ADMIN cannot read details or timeline");
+            check(call(6, "GET", "/api/chamados/42", null).statusCode() == 404, "Missing department grants no access");
+            check(call(2, "GET", "/api/chamados/42", null).statusCode() == 200, "TI can read every ticket");
+            check(call(4, "GET", "/api/chamados", null).body().contains("\"id\":42"), "Coworker list includes sector requests");
+            check(call(3, "GET", "/api/chamados", null).body().contains("\"id\":42"), "Assigned sector list includes requests");
+            check(call(5, "GET", "/api/chamados?clientId=1&supportId=3", null).body().equals("[]"), "Submitted filters cannot bypass department restriction");
+            check(call(6, "GET", "/api/chamados", null).body().equals("[]"), "Unknown sector has an empty list");
+            Notification notification = new Notification(); notification.setId(1); notification.setTicketId(42);
+            NotificationDao.NOTIFICATIONS.add(notification);
+            check(call(4, "GET", "/api/notificacoes", null).body().contains("\"ticketId\":42"), "Visible notifications retained");
+            check(call(5, "GET", "/api/notificacoes", null).body().equals("[]"), "Notifications never expose unrelated tickets");
+            UserDao.USERS.get(4).setDepartment("Compras");
+            check(call(4, "GET", "/api/chamados/42", null).statusCode() == 404, "Department changes apply immediately from database profile");
             check(call(1, "PUT", "/api/chamados/42", "{\"status\":\"CLOSED\",\"message\":\"Teste\"}").statusCode() == 403, "Admin outside TI must not edit");
             check(call(3, "DELETE", "/api/chamados/42", null).statusCode() == 403, "Support outside TI must not delete");
             check(TicketDao.updates == 0 && TicketDao.deletes == 0, "Denied operations must not write");
