@@ -20,4 +20,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Backend compilation failed.' }
 if ($LASTEXITCODE -ne 0) { throw 'Contract test compilation failed.' }
 & java -cp "$contractClasses;$productionClasses;$gsonJar" BackendContractTest
 if ($LASTEXITCODE -ne 0) { throw 'Backend contract tests failed.' }
+
+# Exercise the production TicketDao too, replacing only its JDBC connection provider.
+$jdbcClasses = Join-Path $testBuild 'jdbc'
+$jdbcSources = Get-ChildItem (Join-Path $PSScriptRoot 'backend-jdbc') -Recurse -Filter '*.java' | Select-Object -ExpandProperty FullName
+& javac --release 21 -encoding UTF-8 -cp $productionClasses -d $jdbcClasses $jdbcSources
+if ($LASTEXITCODE -ne 0) { throw 'JDBC test compilation failed.' }
+& java -cp "$jdbcClasses;$productionClasses;$gsonJar" JdbcTicketDaoTest
+if ($LASTEXITCODE -ne 0) { throw 'JDBC tests failed.' }
 Write-Output "Test artifacts: $testBuild"

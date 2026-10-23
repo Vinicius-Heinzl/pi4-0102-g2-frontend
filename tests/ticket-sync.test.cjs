@@ -10,6 +10,7 @@ function application() {
   const users = [{ id: 1, name: 'Adriana', department: 'Marketing' },
     { id: 2, name: 'Vinicius', department: 'TI' }, { id: 3, name: 'Ana', department: 'TI' }];
   const requests = [];
+  let requestFailure = null;
   const toasts = [];
   const nodes = new Map();
   const node = id => {
@@ -29,6 +30,8 @@ function application() {
     fetch: async (url, options) => {
       const body = options.body && JSON.parse(options.body);
       requests.push({ url, method: options.method, cache: options.cache, body });
+      const failure = requestFailure?.(url, options);
+      if (failure) return { ok: false, status: failure.status, text: async () => JSON.stringify({ error: failure.message }) };
       let data;
       if (url.endsWith('/iniciar')) {
         if (ticket.status === 'NEW') ticket = { ...ticket, status: 'ASSIGNED', supportId: 2 };
@@ -49,7 +52,7 @@ function application() {
   context.showToast = (...args) => toasts.push(args);
   run(`CURRENT_USER = { id: 2, name: 'Vinicius', department: 'TI' };
     USERS = ${JSON.stringify(users)}; tickets = [${JSON.stringify(ticket)}];`);
-  return { run, requests, routes, events, timers, toasts, node, server: patch => { ticket = { ...ticket, ...patch }; } };
+  return { run, requests, routes, events, timers, toasts, node, failRequests: handler => { requestFailure = handler; }, server: patch => { ticket = { ...ticket, ...patch }; } };
 }
 
 test('department column follows title in both tables and uses requester rather than assignee sector', () => {
@@ -245,4 +248,26 @@ test('visible requester list periodically synchronizes service started in the TI
   assert.match(node('pageContent').innerHTML, /Em atendimento/);
   assert.equal(run(`getDashboardStats().assigned`), 1);
   assert.equal(requests.filter(request => request.method === 'POST').length, 0);
+});
+
+test('failed resolution displays API error and resets the uncommitted status selection', async () => {
+  const { run, node, toasts, failRequests } = application();
+  failRequests((url, options) => options.method === 'PUT' ? { status: 400, message: 'Responsável não encontrado' } : null);
+  node('quickStatusChange').value = 'CLOSED';
+  await run(`App.quickStatusChange(20, 'CLOSED')`);
+  assert.equal(run(`tickets[0].status`), 'ASSIGNED');
+  assert.equal(node('quickStatusChange').value, '');
+  assert.equal(toasts.at(-1)[0], 'error');
+  assert.equal(toasts.at(-1)[2], 'Responsável não encontrado');
+});
+
+test('resolution saved before a refresh failure is not reported as a failed write', async () => {
+  const { run, requests, toasts, failRequests } = application();
+  failRequests(url => url.endsWith('/api/chamados') && requests.some(request => request.method === 'PUT')
+    ? { status: 503, message: 'Serviço indisponível' } : null);
+  await run(`App.quickStatusChange(20, 'CLOSED')`);
+  assert.equal(run(`tickets[0].status`), 'CLOSED');
+  assert.equal(toasts.some(toast => toast[0] === 'error'), false);
+  assert.equal(toasts.at(-1)[0], 'warning');
+  assert.equal(toasts.at(-1)[1], 'Alteração salva');
 });

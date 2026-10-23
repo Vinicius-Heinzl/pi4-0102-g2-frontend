@@ -82,6 +82,11 @@ public class BackendContractTest {
             check(call(1, "POST", "/api/register", register).statusCode() == 201, "Valid department registration");
             check(UserDao.registered.getRole().equals("CLIENT"), "Public registration must not grant ADMIN");
             check(call(1, "POST", "/api/register", register.replace("\"department\":\"TI\"", "\"department\":\"Unknown\"")).statusCode() == 400, "Invalid registration sector rejected");
+            TicketDao.failUpdate = true;
+            int eventsBeforeFailure = TicketTimelineDao.EVENTS.size();
+            check(call(2, "PUT", "/api/chamados/42", "{\"status\":\"CLOSED\",\"message\":\"Resolver\"}").statusCode() == 500, "Database write failure must return 500 rather than ticket-not-found or success");
+            check(TicketTimelineDao.EVENTS.size() == eventsBeforeFailure, "Failed write must not record a successful resolution");
+            TicketDao.failUpdate = false;
             check(call(2, "DELETE", "/api/chamados/42", null).statusCode() == 200, "TI may delete");
             System.out.println("PASS " + checks + " backend contract checks (isolated in-memory DAOs, no database access)");
         } finally { server.stop(0); }

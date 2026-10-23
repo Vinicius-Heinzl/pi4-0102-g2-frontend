@@ -68,6 +68,10 @@ O deploy no Render foi confirmado pelo [health check da API](https://help-desk-p
 
 ## Verificação
 
+O patch [ticket-persistence.patch](ticket-persistence.patch) deve ser aplicado depois de `start-service.patch`. Ele corrige o DAO para que o INSERT grave `NEW` mesmo com responsável indicado e para que falhas de atualização no banco sejam propagadas como erro de servidor, em vez de serem confundidas com chamado inexistente. O frontend distingue falha na gravação de falha na sincronização após uma gravação bem-sucedida e apresenta a mensagem retornada pela API. Esses ajustes não confirmam, por si só, a causa do erro observado ao resolver o chamado #22.
+
+O script abaixo também testa o `TicketDao` de produção, substituindo apenas a conexão JDBC. Essa etapa verifica os parâmetros de INSERT/UPDATE e a propagação de exceções; não acessa o banco de produção.
+
 ```powershell
 node --test tests/ticket-rules.test.cjs tests/department-access.test.cjs tests/ticket-sync.test.cjs
 ./tests/run-backend-contract.ps1
